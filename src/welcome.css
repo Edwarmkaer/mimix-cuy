@@ -1,0 +1,9 @@
+.space-home{max-width:none;margin:0;padding:0;min-height:0;position:fixed;inset:0;background:#0d1117;overflow:hidden}
+.space-home canvas{display:block;width:100%;height:100%}
+.space-home-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.space-play{position:absolute;top:auto;bottom:7%;left:0;right:0;margin-inline:auto;display:grid;place-items:center;width:76px;height:76px;border-radius:17px;border:3px solid #857028;background:#d9b400;color:#443b20;box-shadow:inset 2px 2px 0 #edcf49,inset -3px -4px 0 #b49118,0 5px 0 #625431,0 9px 0 #353e60,2px 12px 14px #05091280;transition:transform 180ms ease-out,background 180ms ease-out;transform:perspective(400px) rotateX(7deg) rotateY(-8deg)}
+.space-play:hover{transform:perspective(400px) translateY(-6px) rotateX(-5deg) rotateY(8deg);background:#e8c11b}
+.space-play:active{transform:translateY(5px) scale(.96)}
+.space-play:focus-visible{outline:3px solid #8fd8ff;outline-offset:8px}
+.space-status{position:absolute;inset:45% 0 auto;text-align:center;color:#f5f3fa}
+@media(prefers-reduced-motion:reduce){.space-play{transition:none}.space-play:hover,.space-play:active{transform:none}}
