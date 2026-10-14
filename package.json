@@ -8,17 +8,24 @@
     "dev": "node scripts/prepare-assets.mjs && vite --host 127.0.0.1",
     "build": "node scripts/prepare-assets.mjs && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node scripts/prepare-assets.mjs && node --test test/*.test.js",
+    "test": "node scripts/prepare-assets.mjs && node --test test/*.test.js && vitest run",
+    "typecheck:backend": "tsc --noEmit -p convex/tsconfig.json",
     "check:repo": "node scripts/check-repo.mjs",
-    "check": "pnpm check:repo && pnpm test && pnpm build"
+    "check": "pnpm check:repo && pnpm typecheck:backend && pnpm test && pnpm build"
   },
   "dependencies": {
+    "convex": "1.46.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "three": "0.167.1"
   },
   "devDependencies": {
-    "vite": "5.4.21"
+    "@edge-runtime/vm": "^5.0.0",
+    "convex-test": "0.0.62",
+    "esbuild": "0.21.5",
+    "typescript": "5.9.3",
+    "vite": "5.4.21",
+    "vitest": "3.2.4"
   },
   "packageManager": "pnpm@10.34.6",
   "engines": {

@@ -1,7 +1,9 @@
-import { cp, mkdir, rm } from 'node:fs/promises'
+import { cp, mkdir, rm, readFile, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { build } from 'esbuild'
+import { loadEnv } from 'vite'
 
 const root = fileURLToPath(new URL('../', import.meta.url))
 const require = createRequire(import.meta.url)
@@ -32,3 +34,24 @@ for (const name of ['draco_decoder.js', 'draco_wasm_wrapper.js', 'draco_decoder.
   await cp(require.resolve(`three/examples/jsm/libs/draco/gltf/${name}`), path.join(vendor, 'draco', name))
 }
 await cp(path.join(threeRoot, 'LICENSE'), path.join(vendor, 'three/LICENSE'))
+
+// The game keeps its independent HTML entry; provide local ESM SDK modules.
+const convexVendor = path.join(vendor, 'convex')
+await mkdir(convexVendor, { recursive: true })
+const convexRoot = path.dirname(require.resolve('convex/package.json'))
+await cp(path.join(convexRoot, 'LICENSE'), path.join(convexVendor, 'LICENSE'))
+await cp(path.join(convexRoot, 'src/vendor/jwt-decode/LICENSE'), path.join(convexVendor, 'JWT_DECODE_LICENSE'))
+for (const [name, contents] of [
+  ['browser', "export { ConvexHttpClient } from 'convex/browser'"],
+  ['references', "export { makeFunctionReference } from 'convex/server'"],
+]) await build({ stdin: { contents, resolveDir: root }, outfile: path.join(convexVendor, `${name}.js`), bundle: true, format: 'esm', platform: 'browser', minify: true })
+const indexPath = path.join(game, 'index.html')
+const html = await readFile(indexPath, 'utf8')
+await writeFile(indexPath, html.replace(/<script type="importmap">(.*?)<\/script>/s, (_match, json) => {
+  const map = JSON.parse(json)
+  map.imports['convex/browser'] = '/vendor/convex/browser.js'
+  map.imports['convex/server'] = '/vendor/convex/references.js'
+  return `<script type="importmap">${JSON.stringify(map)}</script>`
+}))
+const convexUrl = process.env.VITE_CONVEX_URL ?? loadEnv('production', root, 'VITE_').VITE_CONVEX_URL ?? ''
+await writeFile(path.join(game, 'ranking-config.js'), `export const CONVEX_URL = ${JSON.stringify(convexUrl)}\n`)

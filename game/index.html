@@ -18,15 +18,38 @@
 <div class="guide-tile" id="move-guide"><div class="keyboard-demo"><div class="key-row"><kbd>A</kbd><kbd>D</kbd></div><div class="key-row"><kbd>←</kbd><kbd>→</kbd></div></div><div class="body-demo lateral" aria-hidden="true"><svg viewBox="0 0 240 160"><ellipse class="figure-shadow" cx="120" cy="146" rx="55" ry="7"/><path class="direction" d="m35 70-12 12 12 12m170-24 12 12-12 12"/><g class="person"><path class="legs" d="M108 96 97 137m35-41 12 41"/><path class="arms" d="m101 55-24 33m62-33 24 33"/><path class="shirt" d="M103 48Q120 42 137 48l8 50q-25 10-50 0z"/><circle class="skin" cx="120" cy="28" r="17"/><path class="hair" d="M103 25q-2-22 19-18 18 0 15 21l-9-9-25 6"/></g></svg></div><strong>Muévete a los lados</strong></div>
 <div class="guide-tile" id="jump-guide"><div class="keyboard-demo"><div class="key-row"><kbd>W</kbd><kbd>↑</kbd></div><kbd class="space-key">Espacio</kbd></div><div class="body-demo jumping" aria-hidden="true"><svg viewBox="0 0 240 160"><ellipse class="figure-shadow" cx="120" cy="146" rx="45" ry="7"/><path class="direction" d="M192 86V42m-12 12 12-12 12 12"/><g class="person"><path class="legs" d="m108 96-15 23 8 15m31-38 15 23-8 15"/><path class="arms" d="m101 55-22-25m60 25 22-25"/><path class="shirt" d="M103 48Q120 42 137 48l8 50q-25 10-50 0z"/><circle class="skin" cx="120" cy="28" r="17"/><path class="hair" d="M103 25q-2-22 19-18 18 0 15 21l-9-9-25 6"/></g></svg></div><strong>Salta</strong></div>
 </div>
-<div class="actions"><button id="begin" class="game-control" aria-label="Comenzar" title="Comenzar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3 21 12 7 21z"/></svg></button><button id="tutorial" class="game-control tutorial-control">Tutorial</button></div>
+<div class="actions"><button id="tutorial-back" class="game-control" hidden aria-label="Volver a formas de juego" title="Volver"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m11 3-9 9 9 9v-6h11V9H11z"/></svg></button><button id="begin" class="game-control" aria-label="Comenzar" title="Comenzar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3 21 12 7 21z"/></svg></button><button id="tutorial" class="game-control tutorial-control">Tutorial</button></div>
 </div>
+<button id="recover-ranking" class="recover-ranking" hidden>Recuperar puntaje pendiente</button>
 </section>
 <div id="countdown" role="status" aria-live="assertive" hidden><span id="countdown-number">3</span></div>
 <video id="camera-preview" muted playsinline hidden aria-label="Vista de tu cámara"></video>
 <p id="notice" role="status" hidden></p>
 <section id="result" class="game-over" aria-labelledby="result-title" hidden>
 <img class="game-over-art" src="assets/ui/cuy-frito-gameover-v3.png" alt="El cuy con su chullo, ojos en X y lengua afuera sobre un plato" width="1536" height="1024">
-<h1 id="result-title">¡Quedaste frito!</h1><p id="final-score" role="status"></p>
+<h1 id="result-title">¡Quedaste frito!</h1>
+<div class="result-stats" aria-label="Resultado de esta partida"><p><strong id="final-score">0</strong><span>puntos</span></p><p><strong id="final-coins">0</strong><span>monedas</span></p></div>
+<p id="local-best" class="result-best"></p>
+<div class="ranking-actions"><button id="save-ranking" class="game-control text-control">Guardar en ranking</button><button id="open-ranking" class="game-control text-control">Top 10</button></div>
+<p id="ranking-availability" class="ranking-note" role="status"></p>
+<nav id="quick-mode" aria-label="Cambiar modo de control" hidden><button id="quick-camera" aria-label="Usar cámara" title="Usar cámara" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h12a2 2 0 0 1 2 2v2l5-3v12l-5-3v2a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></button><button id="quick-keyboard" aria-label="Usar teclado" title="Usar teclado" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 8h2v2H5zm4 0h2v2H9zm4 0h2v2h-2zm4 0h2v2h-2zM5 12h2v2H5zm4 0h2v2H9zm4 0h2v2h-2zm4 0h2v2h-2zM7 16h10v1H7z"/></svg></button></nav>
 <div class="result-actions"><button id="restart" class="game-control" aria-label="Volver a jugar" title="Volver a jugar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 0 5h3a5 5 0 1 0 1-6l3 3H2V3z"/></svg></button><a class="game-control" href="/" aria-label="Volver al inicio" title="Volver al inicio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m2 11 10-9 10 9-2 2-1-1v10h-5v-7h-4v7H5V12l-1 1z"/></svg></a></div>
 </section>
-<script type="module" src="main.js"></script><nav id="quick-mode" aria-label="Cambiar modo de control" hidden><button id="quick-camera" aria-pressed="false">Cámara</button><button id="quick-keyboard" aria-pressed="false">Teclado</button></nav></body></html>
+<dialog id="alias-dialog" class="ranking-dialog" aria-labelledby="alias-title">
+<form id="alias-form" novalidate>
+<h2 id="alias-title">Tu nombre en el ranking</h2>
+<label for="ranking-alias">Alias</label>
+<input id="ranking-alias" name="alias" type="text" minlength="3" maxlength="20" autocomplete="off" spellcheck="false" aria-describedby="alias-hint alias-status" required>
+<p id="alias-hint" class="ranking-note">3–20 caracteres: letras, números, espacios, _ o -.</p>
+<p id="alias-status" class="ranking-feedback" role="status" aria-live="polite"></p>
+<div class="ranking-actions"><button id="alias-back" type="button" class="game-control" aria-label="Volver al resultado" title="Volver"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m11 3-9 9 9 9v-6h11V9H11z"/></svg></button><button id="alias-save" class="game-control text-control" type="submit">Guardar</button></div>
+</form>
+</dialog>
+<dialog id="leaderboard-dialog" class="ranking-dialog leaderboard-dialog" aria-labelledby="leaderboard-title">
+<h2 id="leaderboard-title">Top 10</h2>
+<p class="ranking-note">Puntos y monedas de cada partida.</p>
+<p id="leaderboard-status" class="ranking-feedback" role="status" aria-live="polite"></p>
+<div id="leaderboard-table-wrap" class="leaderboard-scroll" hidden><table><caption class="sr-only">Mejores puntajes</caption><thead><tr><th scope="col">Puesto</th><th scope="col">Alias</th><th scope="col">Puntos</th><th scope="col">Monedas</th></tr></thead><tbody id="leaderboard-rows"></tbody></table></div>
+<div class="ranking-actions"><button id="leaderboard-back" class="game-control" aria-label="Volver al resultado" title="Volver"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m11 3-9 9 9 9v-6h11V9H11z"/></svg></button><button id="leaderboard-retry" class="game-control text-control" hidden>Reintentar</button></div>
+</dialog>
+<script type="module" src="main.js"></script></body></html>

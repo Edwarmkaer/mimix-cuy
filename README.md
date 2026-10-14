@@ -5,8 +5,8 @@ esquiva obstáculos, salta y reúne monedas. Puedes jugar con teclado o mover
 tu cuerpo frente a la cámara.
 
 Esta aplicación es independiente de la plataforma Mimix. Contiene únicamente
-la bienvenida y el juego; no requiere API propia, cuenta, base de datos ni
-servicios de robot.
+la bienvenida y el juego, con un ranking ligero en Convex. Se juega sin cuenta
+y sin los servicios de la plataforma Mimix.
 
 ## Ejecutar
 
@@ -39,8 +39,40 @@ La vista previa de producción abre en `http://localhost:4174`.
 
 Diseñado para desktop. El modo cámara necesita HTTPS o localhost y conexión
 para descargar MediaPipe y su detector. El vídeo se procesa en el navegador:
-esta aplicación no envía imágenes a un servidor. La selección de modo se
-recuerda localmente; los puntajes no se guardan ni se comparten entre personas.
+esta aplicación no envía imágenes a un servidor. La selección de modo y el
+récord se recuerdan en este navegador. Al terminar puedes confirmar un alias
+y guardar tu resultado en el Top 10 compartido.
+
+El ranking conserva el mejor resultado de cada alias y las monedas de esa
+partida. Los alias son nombres públicos, no cuentas verificadas: quien use el
+mismo alias comparte esa posición. No hay saldo de monedas ni sincronización
+de una cuenta entre dispositivos. Un guardado fallido puede reintentarse sin
+duplicar la partida; el resultado pendiente se conserva al recargar.
+
+## Configurar el ranking
+
+Sin configuración de Convex puedes jugar y conservar tu récord local.
+Para conectar una base de desarrollo:
+
+```bash
+pnpm exec convex dev
+```
+
+La CLI crea `.env.local`, que no se sube al repositorio, y genera
+`convex/_generated/`. Reinicia `pnpm dev` después de configurar el backend.
+El juego usa únicamente `VITE_CONVEX_URL`, una URL pública que nunca debe
+contener una clave de despliegue.
+
+Para publicar cambios en el backend:
+
+```bash
+pnpm exec convex deploy
+```
+
+Configura en Vercel `VITE_CONVEX_URL` con la URL de **producción** que muestra
+la CLI y vuelve a desplegar el frontend. Usa la URL de **desarrollo** para
+Preview y Development, para que las pruebas no alteren el ranking del evento.
+El despliegue del frontend no publica automáticamente cambios de Convex.
 
 ## Publicar en Vercel
 
@@ -53,8 +85,9 @@ El archivo `vercel.json` ya establece:
 - Build Command: `pnpm build`.
 - Output Directory: `dist`.
 
-No requiere variables de entorno ni servicios adicionales. Vercel ofrece
-HTTPS, necesario para pedir acceso a la cámara fuera de localhost.
+El ranking compartido necesita `VITE_CONVEX_URL`; el juego y el récord local
+funcionan también sin ella. Vercel ofrece HTTPS, necesario para pedir acceso
+a la cámara fuera de localhost.
 Antes del evento, prueba el enlace público desde una ventana sin sesión:
 bienvenida → teclado → tutorial → partida → derrota → reintento → inicio.
 Prueba también permisos y controles de cámara en el equipo del evento.
@@ -65,9 +98,10 @@ Prueba también permisos y controles de cámara en el equipo del evento.
 src/                 Bienvenida React y escena Three.js
   scene/             Solo los módulos visuales utilizados por la bienvenida
 game/                Código, interfaz y recursos del minijuego
+convex/              Esquema y funciones del ranking compartido
 public/              Modelo del cuy y fuente tipográfica
 scripts/             Preparación de recursos locales para dev y build
-test/                Pruebas de controles, reglas, efectos y empaquetado
+test/                Pruebas del juego, guardado local y backend
 vercel.json          Configuración del despliegue estático
 .github/workflows/   Validación automática en GitHub Actions
 ```
@@ -83,7 +117,8 @@ Railway, Graphify y las capturas de desarrollo están excluidas de este reposito
 
 El workflow `CI` se ejecuta en cada push a `main`, en pull requests y manualmente
 desde Actions. Comprueba el contenido público del repositorio, instala las
-dependencias con el lockfile, ejecuta las pruebas y genera el build de producción.
+dependencias con el lockfile, verifica los tipos del backend, ejecuta las pruebas
+y genera el build de producción.
 Usa Node.js 22, pnpm 10.34.6 y acciones fijadas a commits específicos.
 
 Puedes ejecutar las mismas comprobaciones localmente con `pnpm check`.

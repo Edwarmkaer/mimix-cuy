@@ -29,6 +29,8 @@ letras 3D. Su licencia se conserva en `src/scene/fx/fonts/OFL.txt`.
 
 React y Three.js conservan sus licencias en los paquetes instalados.
 El build copia la licencia de Three.js junto a sus módulos de navegador.
+El SDK de Convex usa Apache License 2.0. Su licencia y la de jwt-decode (MIT)
+se copian junto a los módulos del ranking en `vendor/convex/` durante el build.
 Vite es una herramienta de desarrollo y compilación, no un servidor necesario
 para ejecutar el sitio publicado.
 
