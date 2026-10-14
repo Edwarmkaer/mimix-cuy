@@ -99,18 +99,18 @@ export class Game {
         this.currentSpeed = INITIAL_GAME_SPEED;
         this.running = false; // Will be set to true after reset
         this.gameOver = false;
-        
+
         // Reset all game components
         this.lavaManager.reset();
         this.power.reset(); this.powerups.reset(); this.coins.reset(); this.updatePowerCallback(0);
         this.player.reset(); this.aura.reset();
         this.sceneSetup.resetAppearance();
         this.sceneSetup.resetCamera();
-        
+
         // Reset the clock
         this.clock.stop();
         this.clock = new THREE.Clock(); // Create a fresh clock
-        
+
         console.log("Game state reset - Score:", this.score, "Speed:", this.currentSpeed);
     }
 
@@ -125,25 +125,25 @@ export class Game {
     _update() {
         // Store the animation ID immediately
         this.animationId = requestAnimationFrame(this._update);
-        
+
         // Exit immediately if not running
         if (!this.running || this.gameOver) {
             this._stopGameLoop();
             return;
         }
-        
+
         const deltaTime = Math.min(this.clock.getDelta(), 0.05);
-        
+
         // Double-check running state after getting delta time
         if (!this.running || this.gameOver) {
             this._stopGameLoop();
             return;
         }
-        
+
         // Increase speed over time
         this.runSeconds += deltaTime;
         this.currentSpeed = runnerSpeed(this.runSeconds);
-        
+
         const scoreTime = this.power.advance(deltaTime);
 
         // Update game objects
@@ -153,7 +153,7 @@ export class Game {
         if (far > this.camera.far) { this.camera.far = far; this.camera.updateProjectionMatrix(); }
         this.player.update(deltaTime);
         this.lavaManager.update(deltaTime, this.player.mesh.position.z, this.currentSpeed, this.score);
-        
+
         this.powerups.update(deltaTime, this.currentSpeed, this.player.mesh, this.power);
         const collected = this.coins.update(deltaTime, this.currentSpeed, this.player.mesh.position);
         this.coinCount += collected;
@@ -166,10 +166,10 @@ export class Game {
         const SCORE_RATE = 10; // Points per second
         this.score += scoreTime * SCORE_RATE;
         this.updateScoreCallback(Math.floor(this.score), this.coinCount);
-        
+
         // Collision Checks / Game Over Conditions
         const hitLava = this.lavaManager.checkCollision(this.player);
-        
+
         if (hitLava && !this.power.active) {
             console.log("Game Over - Hit Lava! Final Score:", Math.floor(this.score), "Final Speed:", this.currentSpeed.toFixed(2));
             this.gameOver = true;
@@ -179,12 +179,12 @@ export class Game {
             this.showGameOverCallback(this.score);
             return; // Exit immediately
         }
-        
+
         // Adjust camera to follow player's lane smoothly
         const targetCameraX = LANES[this.player.currentLane];
         const cameraFollowSpeed = 1 - Math.exp(-8 * deltaTime);
         this.camera.position.x += (targetCameraX - this.camera.position.x) * cameraFollowSpeed;
-        
+
         // Update Directional Light Position and Target
         const dirLight = this.sceneSetup.directionalLight;
         if (dirLight) {
@@ -192,7 +192,7 @@ export class Game {
             dirLight.target.position.copy(this.player.mesh.position);
             dirLight.target.updateMatrixWorld();
         }
-        
+
         // Render the scene
         this.renderer.render(this.scene, this.camera);
     }

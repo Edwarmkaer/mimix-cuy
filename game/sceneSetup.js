@@ -6,17 +6,17 @@ import { GAME_AREA_LENGTH, LANE_WIDTH } from './constants.js'; // Ensure LANE_WI
 export class SceneSetup {
     constructor(renderDiv) {
         this.renderDiv = renderDiv;
-        
+
         // Scene
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x0d1117);
         // Scene background is now transparent by default (no color set)
         // Fog is removed
-        
+
         // Camera
         this.camera = new THREE.PerspectiveCamera(75, this.renderDiv.clientWidth / this.renderDiv.clientHeight, 0.1, 180);
         this.resetCamera();
-        
+
         // Renderer
         this.renderer = new THREE.WebGLRenderer({
             antialias: true
@@ -29,18 +29,18 @@ export class SceneSetup {
         this.galaxy.mesh.material.uniforms.uOpacity.value = 0.38;
         this.galaxy.mesh.material.uniforms.uFlareGain.value = 0.04;
         this.galaxy.mesh.material.uniforms.uTwinkleIntensity.value = 0.12;
-        
+
         // Lighting
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         this.scene.add(ambientLight);
-        
+
         this.directionalLight = new THREE.DirectionalLight(0xffffff, 3.0); // Increased intensity from 3.0
         this.directionalLight.position.set(0, 6, -7); // Keep initial position for now
         this.scene.add(this.directionalLight);
-        
+
         // Add the light's target object to the scene so it can be updated
         this.scene.add(this.directionalLight.target);
-        
+
         // Floor
         const floorGeometry = new THREE.PlaneGeometry(8, GAME_AREA_LENGTH * 1.5, 32, 32); // Size it relative to game area
         const floorMaterial = new THREE.MeshStandardMaterial({
@@ -56,7 +56,7 @@ export class SceneSetup {
         this.floor.position.z = -(GAME_AREA_LENGTH * 1.5) / 2 + 10; // Center it along the Z axis, adjust offset as needed
         this.scene.add(this.floor);
         this.stonePath = new StonePath(this.scene);
-        
+
     }
 
     resetCamera() {

@@ -24,17 +24,17 @@ export class ParticleManager {
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(PARTICLE_COUNT * 3);
         const lifetimes = new Float32Array(PARTICLE_COUNT);
-        
+
         for (let i = 0; i < PARTICLE_COUNT; i++) {
             positions[i * 3 + 0] = (Math.random() - 0.5) * PARTICLE_SPREAD; // x
             positions[i * 3 + 1] = Math.random() * PARTICLE_BASE_HEIGHT; // y (start higher above floor)
             positions[i * 3 + 2] = (Math.random() - 0.5) * PARTICLE_SPREAD; // z
             lifetimes[i] = Math.random() * PARTICLE_LIFETIME; // Initialize with random lifetime offset
         }
-        
+
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         geometry.setAttribute('lifetime', new THREE.BufferAttribute(lifetimes, 1));
-        
+
         const material = new THREE.PointsMaterial({
             map: particleTexture,
             size: PARTICLE_SIZE,
@@ -45,7 +45,7 @@ export class ParticleManager {
             sizeAttenuation: true,
             alphaTest: 0.1     // Discard very transparent pixels
         });
-        
+
         const points = new THREE.Points(geometry, material);
         points.userData.systemLifetime = PARTICLE_LIFETIME; // Store for reference, though particles manage themselves
         points.renderOrder = 1000; // Render after most other objects
@@ -71,12 +71,12 @@ export class ParticleManager {
         } else {
             system = this._createParticleSystem();
         }
-        
+
         // Position the particle system higher above the lava
         const adjustedPosition = position.clone();
         adjustedPosition.y += PARTICLE_BASE_HEIGHT; // Lift the entire system higher
         system.position.copy(adjustedPosition);
-        
+
         this.scene.add(system);
         this.particleSystems.push(system);
         return system;
@@ -96,11 +96,11 @@ export class ParticleManager {
         for (const system of this.particleSystems) {
             const positions = system.geometry.attributes.position.array;
             const lifetimes = system.geometry.attributes.lifetime.array;
-            
+
             for (let i = 0; i < PARTICLE_COUNT; i++) {
                 lifetimes[i] += deltaTime;
                 positions[i * 3 + 1] += PARTICLE_SPEED_Y * deltaTime; // Move up
-                
+
                 // Reset particle if lifetime exceeded
                 if (lifetimes[i] >= PARTICLE_LIFETIME) {
                     lifetimes[i] = 0;
@@ -109,7 +109,7 @@ export class ParticleManager {
                     positions[i * 3 + 2] = (Math.random() - 0.5) * PARTICLE_SPREAD; // Reset z
                 }
             }
-            
+
             system.geometry.attributes.position.needsUpdate = true;
             system.geometry.attributes.lifetime.needsUpdate = true; // Though not used for rendering, helps pooling
         }
