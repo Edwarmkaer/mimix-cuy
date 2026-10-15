@@ -2,7 +2,7 @@
   "name": "mimix-cuy",
   "version": "1.0.0",
   "private": true,
-  "description": "Minijuego de un cuy para el evento Mimix: cámara o teclado, obstáculos y monedas.",
+  "description": "Un cuy con chullo corre por el espacio: esquiva obstáculos, recoge monedas y compite en el ranking con teclado o cámara.",
   "type": "module",
   "scripts": {
     "dev": "node scripts/prepare-assets.mjs && vite --host 127.0.0.1",
