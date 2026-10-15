@@ -15,11 +15,11 @@ before(async () => {
 })
 after(async () => { await server?.close() })
 
-test('root and legacy page links redirect to the short routes while retaining query parameters', async () => {
+test('legacy page links redirect to the short routes while retaining query parameters', async () => {
   for (const [source, destination] of [
-    ['/?from=event', '/home?from=event'],
-    ['/index.html', '/home'],
-    ['/home/', '/home'],
+    ['/home?from=event', '/?from=event'],
+    ['/index.html', '/'],
+    ['/home/', '/'],
     ['/game/', '/game'],
     ['/experiences/floor-is-lava', '/game'],
     ['/experiences/floor-is-lava/', '/game'],
@@ -32,14 +32,14 @@ test('root and legacy page links redirect to the short routes while retaining qu
 })
 
 test('home and game serve their distinct pages on direct navigation', async () => {
-  const home = await fetch(origin + '/home')
+  const home = await fetch(origin + '/', { redirect: 'manual' })
   assert.equal(home.status, 200)
   assert.match(await home.text(), /<div id="root"><\/div>/)
   const game = await fetch(origin + '/game')
   assert.equal(game.status, 200)
   const html = await game.text()
   assert.match(html, /id="renderDiv"/)
-  assert.match(html, /href="\/home"/)
+  assert.match(html, /href="\/"/)
 })
 
 test('game-relative resources resolve and load from the clean game URL', async () => {
