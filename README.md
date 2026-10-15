@@ -40,8 +40,8 @@ La vista previa de producción abre en `http://localhost:4174`.
 - Recoge monedas y aprovecha los 12 segundos de protección de Inca Kola.
 - Puedes pausar, reintentar o volver a la bienvenida.
 
-Diseñado para desktop. El modo cámara necesita HTTPS o localhost y conexión
-para descargar MediaPipe y su detector. El vídeo se procesa en el navegador:
+Diseñado para desktop. El modo cámara necesita HTTPS o localhost. MediaPipe y
+su detector se sirven desde la misma aplicación. El vídeo se procesa en el navegador:
 esta aplicación no envía imágenes a un servidor. La selección de modo y el
 récord se recuerdan en este navegador. Al terminar puedes confirmar un alias
 y guardar tu resultado en el Top 10 compartido.

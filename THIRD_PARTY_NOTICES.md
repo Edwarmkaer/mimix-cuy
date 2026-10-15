@@ -34,8 +34,9 @@ se copian junto a los módulos del ranking en `vendor/convex/` durante el build.
 Vite es una herramienta de desarrollo y compilación, no un servidor necesario
 para ejecutar el sitio publicado.
 
-El control corporal descarga **MediaPipe Tasks Vision 0.10.14** y su modelo
-desde sus proveedores originales. El procesamiento de vídeo ocurre localmente.
+El control corporal usa **MediaPipe Tasks Vision 0.10.14** y su modelo,
+empaquetados con el sitio. Procedencia y licencia se conservan en
+`game/assets/pose/`. El procesamiento de vídeo ocurre localmente.
 
 ## Recursos gráficos
 

@@ -36,6 +36,13 @@ for (const name of ['draco_decoder.js', 'draco_wasm_wrapper.js', 'draco_decoder.
 await cp(path.join(threeRoot, 'LICENSE'), path.join(vendor, 'three/LICENSE'))
 
 // The game keeps its independent HTML entry; provide local ESM SDK modules.
+// Pin and serve the detector locally: no CDN dependency during camera startup.
+const visionRoot = path.dirname(require.resolve('@mediapipe/tasks-vision'))
+const visionVendor = path.join(vendor, 'mediapipe')
+await mkdir(visionVendor, { recursive: true })
+await cp(path.join(visionRoot, 'vision_bundle.mjs'), path.join(visionVendor, 'vision_bundle.mjs'))
+await cp(path.join(visionRoot, 'wasm'), path.join(visionVendor, 'wasm'), { recursive: true })
+
 const convexVendor = path.join(vendor, 'convex')
 await mkdir(convexVendor, { recursive: true })
 const convexRoot = path.dirname(require.resolve('convex/package.json'))

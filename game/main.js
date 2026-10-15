@@ -172,7 +172,11 @@ async function activateCamera() {
     if (attempt !== cameraAttempt || disposed) return;
     console.error('No se pudo iniciar el control por cámara:', error);
     const detail = error.message === 'CameraTimeout'
-      ? 'La cámara tardó demasiado. Puedes reintentar o elegir teclado.'
+      ? tracker?.stage === 'camera'
+        ? 'No recibimos acceso a la cámara. Revisa el permiso del navegador y vuelve a intentarlo.'
+        : tracker?.stage === 'video'
+          ? 'La cámara no empezó a enviar vídeo. Cierra otras aplicaciones que la usen y reintenta.'
+          : 'El detector tardó demasiado. Puedes reintentar o elegir teclado.'
       : tracker?.stage === 'detector'
       ? 'La cámara abrió, pero no pudimos cargar el detector de movimiento. Comprueba tu conexión y reintenta.'
       : error.name === 'NotAllowedError'

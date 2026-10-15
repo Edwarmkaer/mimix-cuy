@@ -3,11 +3,11 @@ let resourcesPromise;
 export function preloadPoseResources() {
   if (!resourcesPromise) {
     resourcesPromise = Promise.all([
-      import('https://esm.sh/@mediapipe/tasks-vision@0.10.14').then(async ({ PoseLandmarker, FilesetResolver }) => ({
+      import('/vendor/mediapipe/vision_bundle.mjs').then(async ({ PoseLandmarker, FilesetResolver }) => ({
         PoseLandmarker,
-        files: await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'),
+        files: await FilesetResolver.forVisionTasks('/vendor/mediapipe/wasm'),
       })),
-      fetch('https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task')
+      fetch(new URL('./assets/pose/pose_landmarker_lite.task', import.meta.url))
         .then(response => { if (!response.ok) throw new Error('PoseModelUnavailable'); return response.arrayBuffer(); }),
     ]).then(([runtime, model]) => ({ ...runtime, model: new Uint8Array(model) }))
       .catch(error => { resourcesPromise = null; throw error; });
@@ -22,22 +22,37 @@ export class PoseTracker {
   }
   async initialize() {
     this.stage = 'camera';
+    const started = performance.now();
+    const mark = stage => console.debug(`[Camera startup] ${stage}: ${Math.round(performance.now() - started)} ms`);
     const resources = this.loadResources();
     // Permission prompts may remain open after a download fails.
     resources.catch(() => {});
     if (!this.mediaDevices?.getUserMedia) throw new Error('CameraUnavailable');
-    const stream = await this.mediaDevices.getUserMedia({video:{width:640,height:480},audio:false});
-    if (this.disposed) { stream.getTracks().forEach(t=>t.stop()); return; }
-    this.video.srcObject = stream; await this.video.play();
+    // Build the detector while the device/permission/video are becoming ready.
+    // Each branch owns late results so cancellation never leaks a camera or GPU context.
+    const detectorReady = resources.then(async ({ PoseLandmarker, files, model }) => {
+      if (this.disposed) return;
+      mark('resources-ready');
+      const detector = await PoseLandmarker.createFromOptions(files, { baseOptions: {
+        modelAssetBuffer: model, delegate: 'GPU',
+      }, runningMode: 'VIDEO', numPoses: 1 });
+      if (this.disposed) { detector.close(); return; }
+      this.detector = detector;
+      mark('detector-ready');
+    });
+    const videoReady = this.mediaDevices.getUserMedia({video:{width:640,height:480},audio:false}).then(async stream => {
+      if (this.disposed) { stream.getTracks().forEach(t => t.stop()); return; }
+      mark('stream-ready');
+      this.stage = 'video';
+      this.video.srcObject = stream;
+      await this.video.play();
+      mark('video-ready');
+      if (!this.disposed && !this.detector) this.stage = 'detector';
+    });
+    try { await Promise.all([detectorReady, videoReady]); }
+    catch (error) { this.stop(); throw error; }
     if (this.disposed) return;
-    this.stage = 'detector';
-    const { PoseLandmarker, files, model } = await resources;
-    if (this.disposed) return;
-    const detector = await PoseLandmarker.createFromOptions(files, { baseOptions: {
-      modelAssetBuffer: model, delegate: 'GPU',
-    }, runningMode: 'VIDEO', numPoses: 1 });
-    if (this.disposed) { detector.close(); return; }
-    this.detector = detector;
+    const detector = this.detector;
     let lastVideo = -1;
     const tick = now => {
       if (this.disposed) return;

@@ -45,3 +45,43 @@ test('cancelling during detector construction closes a late detector and stops t
     assert.equal(video.srcObject, null);
   } finally { globalThis.cancelAnimationFrame = oldCancel; }
 });
+
+test('detector initialization overlaps the camera permission wait', async () => {
+  const oldCancel = globalThis.cancelAnimationFrame;
+  globalThis.cancelAnimationFrame = () => {};
+  let releaseCamera, notifyConstruction, closed = 0;
+  const constructing = new Promise(resolve => { notifyConstruction = resolve; });
+  const tracker = new PoseTracker({ srcObject: null }, () => {}, {
+    mediaDevices: { getUserMedia: () => new Promise(resolve => { releaseCamera = resolve; }) },
+    loadResources: async () => ({ files: {}, model: new Uint8Array(1), PoseLandmarker: {
+      createFromOptions: async () => { notifyConstruction(); return { close: () => closed++ }; },
+    } }),
+  });
+  try {
+    const pending = tracker.initialize();
+    await constructing;
+    // No camera stream has resolved, but detector construction already started.
+    tracker.stop();
+    releaseCamera({ getTracks: () => [{ stop() {} }] });
+    await pending;
+    assert.equal(closed, 1);
+  } finally { globalThis.cancelAnimationFrame = oldCancel; }
+});
+
+test('detector failure releases a camera stream arriving later', async () => {
+  const oldCancel = globalThis.cancelAnimationFrame;
+  globalThis.cancelAnimationFrame = () => {};
+  let releaseCamera, stopped = 0;
+  const video = { srcObject: null };
+  const tracker = new PoseTracker(video, () => {}, {
+    mediaDevices: { getUserMedia: () => new Promise(resolve => { releaseCamera = resolve; }) },
+    loadResources: async () => { throw Error('offline'); },
+  });
+  try {
+    await assert.rejects(tracker.initialize(), /offline/);
+    releaseCamera({ getTracks: () => [{ stop: () => stopped++ }] });
+    await Promise.resolve();
+    assert.equal(stopped, 1);
+    assert.equal(video.srcObject, null);
+  } finally { globalThis.cancelAnimationFrame = oldCancel; }
+});
