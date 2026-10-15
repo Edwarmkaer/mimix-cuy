@@ -1,3 +1,4 @@
+import { GameMusic } from './music.js';
 import { mountGalaxyLoading } from './shared/fx/GalaxyLoading.js';
 import { normalizeAlias } from './score-rules.js';
 import { recordLocalResult, getRememberedAlias, getPendingResult, saveResult, loadLeaderboard, isRankingAvailable } from './score-service.js';
@@ -10,15 +11,24 @@ import { PoseControls } from './pose-controls.js';
 const el = id => document.getElementById(id);
 const status = el('status'), setup = el('setup'), notice = el('notice');
 let disposeLoading = mountGalaxyLoading(el('mimix-loading'));
-const game = new Game(el('renderDiv'), (score, coins) => { el('coin-value').textContent = String(coins); el('score-value').textContent = String(score); }, score => {
+let loadingExitTimer;
+const music = new GameMusic();
+let previousCoins = 0;
+const game = new Game(el('renderDiv'), (score, coins) => {
+  if (coins > previousCoins) music.playEffect('coin');
+  previousCoins = coins;
+  el('coin-value').textContent = String(coins); el('score-value').textContent = String(score); }, score => {
   resumeAfterMode = false; phase = 'over'; el('result').hidden = false;
+  music.setRunning(false); music.setBoost(false); music.playEffect('lose');
   showResult(score);
   el('pause').hidden = true; notice.hidden = true; el('power-status').hidden = true;
 }, remaining => {
+  music.setBoost(remaining > 0);
   el('power-status').hidden = remaining <= 0;
   el('power-seconds').textContent = `${Math.ceil(remaining)} s`;
   el('power-status').classList.toggle('expiring', remaining > 0 && remaining <= 2);
   el('power-meter').value = remaining;
+  el('power-status').style.setProperty('--power-left', `${Math.max(0, Math.min(1, remaining / 12)) * 100}%`);
 });
 const pose = new PoseControls(game.player);
 const keyboard = new KeyboardControls(game.player);
@@ -30,6 +40,8 @@ let countdownLeft = 0, countdownDigit = 0, uiFrame, previousFrame = performance.
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 function beginCountdown() {
   if (disposed || phase === 'countdown') return;
+  music.unlock();
+  music.setRunning(false);
   phase = 'countdown'; countdownLeft = 3; countdownDigit = 0;
   setup.hidden = true; el('result').hidden = true; el('pause').hidden = true;
   el('countdown').hidden = false; message('');
@@ -43,7 +55,7 @@ function updatePresentation(now) {
     if (phase === 'countdown') {
       const digit = Math.ceil(countdownLeft);
       if (digit !== countdownDigit && digit > 0) {
-        countdownDigit = digit; el('countdown-number').textContent = String(digit);
+        countdownDigit = digit; music.playEffect('tick'); el('countdown-number').textContent = String(digit);
         if (!reducedMotion.matches) el('countdown-number').animate([
           {transform:'scale(.65) rotate(-8deg)',opacity:0},
           {transform:'scale(1.12) rotate(3deg)',opacity:1,offset:.3},
@@ -76,6 +88,8 @@ function start() {
   pose.reset();
   setup.hidden = true; el('result').hidden = true; el('pause').hidden = false;
   setPauseControl(false); phase = 'running'; message('');
+  music.setRunning(true, !resumeAfterMode);
+  music.playEffect('go');
   if (resumeAfterMode) { game.resume(); resumeAfterMode = false; } else game.start();
   game.renderer.domElement.tabIndex = -1; game.renderer.domElement.focus();
 }
@@ -83,6 +97,7 @@ function pause() {
   if (phase !== 'running' && phase !== 'countdown') return;
   if (phase === 'running') { game.pause(); resumeAfterMode = true; }
   el('countdown').hidden = true; el('pause').hidden = false;
+  music.setRunning(false);
   phase = 'paused'; keyboard.reset(); setPauseControl(true); message('');
 }
 Promise.all([game.player.ready, game.sceneSetup.stonePath.ready, game.lavaManager.ready, game.powerups.ready, game.coins.ready]).then(() => {
@@ -102,6 +117,7 @@ function selectMode(next) {
   cameraAttempt++; tracker?.stop(); tracker = null; cameraReady = false;
   keyboard.reset(); pose.reset(); if (!resumeAfterMode) { game.player.reset(); game.player.stopRunAnimation(); }
   phase = 'setup'; mode = next; practice.clear();
+  if (mode === 'camera') import('./poseTracker.js').then(module => module.preloadPoseResources()).catch(() => {});
   el('camera-preview').hidden = true;
 
   el('begin').setAttribute('aria-label', resumeAfterMode ? 'Continuar' : 'Comenzar');
@@ -138,7 +154,14 @@ async function activateCamera() {
     tracker = new PoseTracker(el('camera-preview'), (x,y) => {
       if (phase === 'running' || phase === 'practice') pose.update(x,y);
     });
-    await tracker.initialize();
+    const activeTracker = tracker;
+    let timeout;
+    try {
+      await Promise.race([
+        activeTracker.initialize(),
+        new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('CameraTimeout')), 25000); }),
+      ]);
+    } finally { clearTimeout(timeout); }
     if (attempt !== cameraAttempt || disposed) return;
     cameraReady = true;
     el('camera-preview').hidden = false;
@@ -148,7 +171,9 @@ async function activateCamera() {
   } catch (error) {
     if (attempt !== cameraAttempt || disposed) return;
     console.error('No se pudo iniciar el control por cámara:', error);
-    const detail = tracker?.stage === 'detector'
+    const detail = error.message === 'CameraTimeout'
+      ? 'La cámara tardó demasiado. Puedes reintentar o elegir teclado.'
+      : tracker?.stage === 'detector'
       ? 'La cámara abrió, pero no pudimos cargar el detector de movimiento. Comprueba tu conexión y reintenta.'
       : error.name === 'NotAllowedError'
         ? 'El navegador bloqueó la cámara. Permite su acceso para este sitio y vuelve a intentarlo.'
@@ -173,6 +198,7 @@ async function activateCamera() {
 }
 async function prepare(practicing) {
   if (!mode || !ready || setup.classList.contains('camera-loading')) return;
+  if (!practicing) music.unlock();
   const selected = mode;
   if (mode === 'camera' && !await activateCamera()) return;
   if (disposed || selected !== mode) return;
@@ -207,6 +233,8 @@ function blur() { keyboard.reset(); pause(); }
 function visibility() { if (document.hidden) pause(); }
 function dispose() {
   if (disposed) return;
+  music.dispose();
+  clearTimeout(loadingExitTimer);
   disposed = true; disposeLoading?.(); disposeLoading = null; cancelAnimationFrame(uiFrame); cameraAttempt++; tracker?.stop(); game.dispose();
   window.removeEventListener('keydown',key); window.removeEventListener('keyup',keyup); window.removeEventListener('blur',blur); document.removeEventListener('visibilitychange',visibility);
 }
@@ -335,9 +363,22 @@ async function refreshLeaderboard() {
 }
 
 function setLoading(visible, cancellable = false) {
-  el('mimix-loading').hidden = !visible;
-  if (visible && !disposeLoading) disposeLoading = mountGalaxyLoading(el('mimix-loading'));
-  if (!visible) { disposeLoading?.(); disposeLoading = null; }
+  const overlay = el('mimix-loading');
+  clearTimeout(loadingExitTimer);
+  if (visible) {
+    overlay.hidden = false;
+    overlay.classList.remove('is-leaving');
+    if (!disposeLoading) disposeLoading = mountGalaxyLoading(overlay);
+  } else if (!overlay.hidden && !overlay.classList.contains('is-leaving')) {
+    overlay.classList.add('is-leaving');
+  }
+  if (!visible && !overlay.hidden) {
+    loadingExitTimer = setTimeout(() => {
+      overlay.hidden = true;
+      overlay.classList.remove('is-leaving');
+      disposeLoading?.(); disposeLoading = null;
+    }, reducedMotion.matches ? 0 : 420);
+  }
   el('loading-back').hidden = !cancellable;
   setup.inert = visible;
 }
@@ -346,3 +387,16 @@ el('loading-back').onclick = () => { selectMode(mode); el('camera').focus(); };
 window.addEventListener('keydown', event => {
   if (event.key === 'Escape' && !el('mimix-loading').hidden && !el('loading-back').hidden) el('loading-back').click();
 });
+
+function updateMusicButton() {
+  const button = el('music-toggle');
+  button.classList.toggle('is-muted', music.muted);
+  button.setAttribute('aria-pressed', String(!music.muted));
+  button.setAttribute('aria-label', music.muted ? 'Activar sonido' : 'Silenciar sonido');
+  button.title = music.muted ? 'Activar sonido' : 'Silenciar sonido';
+}
+el('music-toggle').onclick = () => {
+  music.toggleMuted(); updateMusicButton();
+  if (phase === 'running' || phase === 'practice') game.renderer.domElement.focus();
+};
+updateMusicButton();

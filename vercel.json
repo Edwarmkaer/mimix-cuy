@@ -5,7 +5,17 @@
   "buildCommand": "pnpm build",
   "outputDirectory": "dist",
   "redirects": [
-    { "source": "/experiences/floor-is-lava", "destination": "/experiences/floor-is-lava/index.html", "permanent": false }
+    { "source": "/", "destination": "/home", "permanent": true },
+    { "source": "/index.html", "destination": "/home", "permanent": true },
+    { "source": "/home/", "destination": "/home", "permanent": true },
+    { "source": "/game/", "destination": "/game", "permanent": true },
+    { "source": "/experiences/floor-is-lava", "destination": "/game", "permanent": true },
+    { "source": "/experiences/floor-is-lava/", "destination": "/game", "permanent": true },
+    { "source": "/experiences/floor-is-lava/index.html", "destination": "/game", "permanent": true }
+  ],
+  "rewrites": [
+    { "source": "/home", "destination": "/index.html" },
+    { "source": "/game", "destination": "/experiences/floor-is-lava/index.html" }
   ],
   "headers": [
     {

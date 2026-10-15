@@ -1,11 +1,16 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mimix Cuy · El suelo es lava</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="/mimix-loader.css">
+<html lang="es"><head><base href="/experiences/floor-is-lava/"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mimix Cuy · El suelo es lava</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="/mimix-loader.css">
 <script type="importmap">{"imports":{"three":"/vendor/three/three.module.js","three/":"/vendor/three/"}}</script></head>
 <body><main id="renderDiv" aria-label="El suelo es lava"></main>
-<aside id="power-status" hidden aria-label="Protección de Inca Kola"><strong>Inca Kola · ×2</strong><span>Protección <b id="power-seconds">12 s</b></span><progress id="power-meter" max="12" value="12" aria-label="Protección restante"></progress></aside>
+<aside id="power-status" hidden aria-label="Inca Kola: protección y puntos dobles">
+<div class="power-bottle" aria-hidden="true"><svg viewBox="0 0 32 56"><path d="M12 3h8v10l5 8v29q0 4-9 4t-9-4V21l5-8z" fill="#ffe16b" stroke="#806322" stroke-width="2"/><path d="M12 2h8v5h-8z" fill="#efbb00"/><path d="M8 25h16v17H8z" fill="#3264a2"/><path d="m17 27-5 9h4l-1 5 6-10h-5z" fill="#fff1b6"/></svg></div>
+<div class="power-copy"><strong>INCA KOLA <b>×2</b></strong><span>¡Imparable!</span><div class="power-track" aria-hidden="true"><i></i></div></div>
+<span id="power-seconds">12 s</span><progress id="power-meter" class="sr-only" max="12" value="12" aria-label="Protección restante"></progress>
+</aside>
 <header><span id="coin-score" aria-label="Monedas recogidas"><strong id="coin-value">0</strong><small>monedas</small></span><span id="score" aria-label="Puntuación"><strong id="score-value">0</strong><small>puntos</small></span></header>
 <button id="pause" class="game-control" aria-label="Pausar" title="Pausar" hidden><svg class="pause-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg><svg class="resume-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3 21 12 7 21z"/></svg></button>
-<a id="home" class="game-control" href="/" aria-label="Volver al inicio" title="Volver al inicio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m2 11 10-9 10 9-2 2-1-1v10h-5v-7h-4v7H5V12l-1 1z"/></svg></a>
+<a id="home" class="game-control" href="/home" aria-label="Volver al inicio" title="Volver al inicio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m2 11 10-9 10 9-2 2-1-1v10h-5v-7h-4v7H5V12l-1 1z"/></svg></a>
+<button id="music-toggle" class="game-control" aria-label="Silenciar sonido" title="Silenciar sonido" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h4l5-5v16l-5-5H3z"/><path class="music-waves" d="M16 7q6 5 0 10M15 10q2 2 0 4" fill="none" stroke="currentColor" stroke-width="2"/><path class="music-off" d="m16 9 6 6m0-6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
 <section id="setup" inert class="camera-gate" aria-label="Preparar partida">
 <h1 id="setup-title">Formas de juego</h1>
 <div class="mode-switch" role="group" aria-label="Modo de juego">
@@ -31,7 +36,7 @@
 <div class="result-stats" aria-label="Resultado de esta partida"><p><strong id="final-score">0</strong><span>puntos</span></p><p><strong id="final-coins">0</strong><span>monedas</span></p></div>
 <div class="ranking-actions"><button id="save-ranking" class="game-control text-control">Guardar en ranking</button><button id="open-ranking" class="game-control text-control">Ranking</button></div>
 <p id="ranking-availability" class="ranking-note" role="status"></p>
-<div class="result-actions"><button id="restart" class="game-control" aria-label="Volver a jugar" title="Volver a jugar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 0 5h3a5 5 0 1 0 1-6l3 3H2V3z"/></svg></button><a class="game-control" href="/" aria-label="Volver al inicio" title="Volver al inicio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m2 11 10-9 10 9-2 2-1-1v10h-5v-7h-4v7H5V12l-1 1z"/></svg></a></div>
+<div class="result-actions"><button id="restart" class="game-control" aria-label="Volver a jugar" title="Volver a jugar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 0 5h3a5 5 0 1 0 1-6l3 3H2V3z"/></svg></button><a class="game-control" href="/home" aria-label="Volver al inicio" title="Volver al inicio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m2 11 10-9 10 9-2 2-1-1v10h-5v-7h-4v7H5V12l-1 1z"/></svg></a></div>
 </section>
 <dialog id="alias-dialog" class="ranking-dialog" aria-labelledby="alias-title">
 <form id="alias-form" novalidate>

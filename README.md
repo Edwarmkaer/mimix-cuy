@@ -17,7 +17,10 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Abre `http://localhost:5174`. Desde la bienvenida, pulsa Play para entrar al juego.
+Abre `http://localhost:5174/home`. Desde la bienvenida, pulsa Play para entrar
+a `/game`. La raíz `/` redirige a `/home` y los enlaces antiguos del juego
+redirigen a `/game`, también en Vercel. Ambas páginas admiten entrada directa
+y recarga sin cambiar la URL visible.
 
 ```bash
 pnpm test
