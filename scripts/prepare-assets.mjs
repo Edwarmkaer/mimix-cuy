@@ -13,7 +13,7 @@ await rm(game, { recursive: true, force: true })
 await mkdir(game, { recursive: true })
 await cp(path.join(root, 'game'), game, { recursive: true })
 
-for (const name of ['fx/GalaxyBackground.js', 'fx/reactbits/galaxy-shader.js', 'fx/reactbits/LICENSE.md', 'config/theme.js']) {
+for (const name of ['fx/GalaxyLoading.js', 'fx/GalaxyBackground.js', 'fx/reactbits/galaxy-shader.js', 'fx/reactbits/LICENSE.md', 'config/theme.js']) {
   const destination = path.join(game, 'shared', name)
   await mkdir(path.dirname(destination), { recursive: true })
   await cp(path.join(root, 'src/scene', name), destination)

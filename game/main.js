@@ -1,5 +1,6 @@
+import { mountGalaxyLoading } from './shared/fx/GalaxyLoading.js';
 import { normalizeAlias } from './score-rules.js';
-import { recordLocalResult, getLocalBest, getRememberedAlias, getPendingResult, saveResult, loadLeaderboard, isRankingAvailable } from './score-service.js';
+import { recordLocalResult, getRememberedAlias, getPendingResult, saveResult, loadLeaderboard, isRankingAvailable } from './score-service.js';
 import { KeyboardControls } from './keyboard-controls.js';
 import { Game } from './game.js';
 import { PoseControls } from './pose-controls.js';
@@ -8,8 +9,9 @@ import { PoseControls } from './pose-controls.js';
 // so a future island can host the same rules through a challenge adapter.
 const el = id => document.getElementById(id);
 const status = el('status'), setup = el('setup'), notice = el('notice');
+let disposeLoading = mountGalaxyLoading(el('mimix-loading'));
 const game = new Game(el('renderDiv'), (score, coins) => { el('coin-value').textContent = String(coins); el('score-value').textContent = String(score); }, score => {
-  resumeAfterMode = false; el('quick-mode').hidden = false; phase = 'over'; el('result').hidden = false;
+  resumeAfterMode = false; phase = 'over'; el('result').hidden = false;
   showResult(score);
   el('pause').hidden = true; notice.hidden = true; el('power-status').hidden = true;
 }, remaining => {
@@ -72,35 +74,36 @@ function message(text) { notice.textContent = text; notice.hidden = !text; }
 function start() {
   if (disposed || !game.player.modelLoaded) return;
   pose.reset();
-  setup.hidden = true; el('result').hidden = true; el('pause').hidden = false; el('quick-mode').hidden = true;
+  setup.hidden = true; el('result').hidden = true; el('pause').hidden = false;
   setPauseControl(false); phase = 'running'; message('');
   if (resumeAfterMode) { game.resume(); resumeAfterMode = false; } else game.start();
   game.renderer.domElement.tabIndex = -1; game.renderer.domElement.focus();
 }
-function pause(text = 'En pausa. Pulsa Reanudar para continuar.') {
-  if (phase !== 'running') return;
-  game.pause(); phase = 'paused'; setPauseControl(true); message(text);
+function pause() {
+  if (phase !== 'running' && phase !== 'countdown') return;
+  if (phase === 'running') { game.pause(); resumeAfterMode = true; }
+  el('countdown').hidden = true; el('pause').hidden = false;
+  phase = 'paused'; keyboard.reset(); setPauseControl(true); message('');
 }
 Promise.all([game.player.ready, game.sceneSetup.stonePath.ready, game.lavaManager.ready, game.powerups.ready, game.coins.ready]).then(() => {
   if (disposed) return;
   game.renderer.render(game.scene,game.camera);
-  ready = true; status.textContent = '';
+  ready = true; setLoading(false); status.textContent = '';
   el('recover-ranking').hidden = !getPendingResult();
   try { const saved = localStorage.getItem('mimix-control-mode'); if (saved === 'camera' || saved === 'keyboard') selectMode(saved); } catch { /* Storage is optional. */ }
   el('camera').disabled = el('keyboard').disabled = false;
-}).catch(() => { status.textContent = 'No se pudo cargar el escenario o el cuy. Recarga la página para reintentar.'; });
+}).catch(() => { setLoading(false); status.textContent = 'No se pudo cargar el escenario o el cuy. Recarga la página para reintentar.'; });
 function selectMode(next) {
   if (!ready || disposed) return;
   if (next === mode && phase !== 'setup' && phase !== 'practice') return;
   if (phase === 'running' || phase === 'paused') { game.pause(); resumeAfterMode = true; }
   el('pause').hidden = true; el('countdown').hidden = true; setup.hidden = false;
+  setLoading(false);
   cameraAttempt++; tracker?.stop(); tracker = null; cameraReady = false;
   keyboard.reset(); pose.reset(); if (!resumeAfterMode) { game.player.reset(); game.player.stopRunAnimation(); }
   phase = 'setup'; mode = next; practice.clear();
   el('camera-preview').hidden = true;
-  el('quick-mode').hidden = true;
-  el('quick-camera').setAttribute('aria-pressed', String(mode === 'camera'));
-  el('quick-keyboard').setAttribute('aria-pressed', String(mode === 'keyboard'));
+
   el('begin').setAttribute('aria-label', resumeAfterMode ? 'Continuar' : 'Comenzar');
   el('begin').title = resumeAfterMode ? 'Continuar' : 'Comenzar';
   el('tutorial').hidden = resumeAfterMode;
@@ -119,13 +122,6 @@ function selectMode(next) {
 }
 el('keyboard').onclick = () => selectMode('keyboard');
 el('camera').onclick = () => selectMode('camera');
-function selectResultMode(next) {
-  if (phase !== 'over' || next === mode) return;
-  selectMode(next);
-  phase = 'over'; setup.hidden = true; el('quick-mode').hidden = false;
-}
-el('quick-camera').onclick = () => selectResultMode('camera');
-el('quick-keyboard').onclick = () => selectResultMode('keyboard');
 el('tutorial-back').onclick = () => selectMode(mode);
 async function activateCamera() {
   if (cameraReady) return true;
@@ -134,7 +130,7 @@ async function activateCamera() {
   setup.setAttribute('aria-busy', 'true');
   el('tutorial-back').hidden = false;
   el('begin').disabled = el('tutorial').disabled = true;
-  status.textContent = 'Activando cámara…';
+  status.textContent = ''; setLoading(true, true);
   try {
     const { PoseTracker } = await import('./poseTracker.js');
     if (disposed || attempt !== cameraAttempt) return;
@@ -168,6 +164,7 @@ async function activateCamera() {
     return false;
   } finally {
     if (!disposed && attempt === cameraAttempt) {
+      setLoading(false);
       setup.classList.remove('camera-loading');
       setup.removeAttribute('aria-busy');
       el('tutorial-back').hidden = !setup.classList.contains('practicing');
@@ -191,14 +188,14 @@ el('begin').onclick = () => prepare(false);
 el('tutorial').onclick = () => prepare(true);
 el('restart').onclick = () => {
   if (mode === 'camera' && !cameraReady) {
-    phase = 'setup'; setup.hidden = false; el('result').hidden = true; el('quick-mode').hidden = true;
+    phase = 'setup'; setup.hidden = false; el('result').hidden = true;
   }
   prepare(false);
 };
 el('pause').onclick = () => {
   if (phase === 'running') pause();
   else if (phase === 'paused') {
-    phase = 'running'; game.resume(); setPauseControl(false); message('');
+    beginCountdown();
   }
 };
 function key(event) {
@@ -210,7 +207,7 @@ function blur() { keyboard.reset(); pause(); }
 function visibility() { if (document.hidden) pause(); }
 function dispose() {
   if (disposed) return;
-  disposed = true; cancelAnimationFrame(uiFrame); cameraAttempt++; tracker?.stop(); game.dispose();
+  disposed = true; disposeLoading?.(); disposeLoading = null; cancelAnimationFrame(uiFrame); cameraAttempt++; tracker?.stop(); game.dispose();
   window.removeEventListener('keydown',key); window.removeEventListener('keyup',keyup); window.removeEventListener('blur',blur); document.removeEventListener('visibilitychange',visibility);
 }
 window.addEventListener('keydown',key); window.addEventListener('keyup',keyup); window.addEventListener('blur',blur); document.addEventListener('visibilitychange',visibility);
@@ -233,8 +230,6 @@ function showResult(score) {
   resultSaved = false; savingResult = false; aliasDraft = getRememberedAlias() || '';
   el('final-score').textContent = number(currentResult.score);
   el('final-coins').textContent = number(currentResult.coins);
-  const best = getLocalBest();
-  el('local-best').textContent = `Récord en este equipo: ${number(best.score)} puntos`;
   el('save-ranking').textContent = 'Guardar en ranking';
   el('save-ranking').disabled = !isRankingAvailable();
   el('ranking-availability').textContent = isRankingAvailable() ? '' : 'Ranking no disponible. Tu récord queda en este equipo.';
@@ -338,3 +333,16 @@ async function refreshLeaderboard() {
     el('leaderboard-retry').hidden = false;
   }
 }
+
+function setLoading(visible, cancellable = false) {
+  el('mimix-loading').hidden = !visible;
+  if (visible && !disposeLoading) disposeLoading = mountGalaxyLoading(el('mimix-loading'));
+  if (!visible) { disposeLoading?.(); disposeLoading = null; }
+  el('loading-back').hidden = !cancellable;
+  setup.inert = visible;
+}
+el('loading-back').onclick = () => { selectMode(mode); el('camera').focus(); };
+
+window.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && !el('mimix-loading').hidden && !el('loading-back').hidden) el('loading-back').click();
+});

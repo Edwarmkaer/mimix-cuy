@@ -22,6 +22,19 @@ export default function Welcome() {
     {state === 'ready' && <a className="space-play" href="/experiences/floor-is-lava/index.html" aria-label="Play: jugar El suelo es lava" title="Jugar">
       <svg aria-hidden="true" viewBox="0 0 32 32" width="32" height="32"><path d="M10 5.5 Q10 3.5 12 4.7 L27 14.2 Q29 16 27 17.8 L12 27.3 Q10 28.5 10 26.5Z" fill="currentColor" /></svg>
     </a>}
-    {state !== 'ready' && <div className="space-status" role="status">{state === 'error' ? <>No pudimos preparar la bienvenida. <button onClick={() => setAttempt(attempt + 1)}>Reintentar</button></> : 'Preparando a tu compañero…'}</div>}
+    {state === 'loading' && <GalaxyLoader />}
+    {state === 'error' && <div className="space-status" role="status"><>No pudimos preparar la bienvenida. <button onClick={() => setAttempt(attempt + 1)}>Reintentar</button></></div>}
   </main>
+}
+
+function GalaxyLoader() {
+  const container = useRef(null)
+  useEffect(() => {
+    let active = true, dispose
+    import('./scene/fx/GalaxyLoading.js').then(({ mountGalaxyLoading }) => {
+      if (active) dispose = mountGalaxyLoading(container.current)
+    }).catch(() => { /* Static stars remain while the welcome loads. */ })
+    return () => { active = false; dispose?.() }
+  }, [])
+  return <div ref={container} className="mimix-loading" role="status" aria-label="Cargando" />
 }

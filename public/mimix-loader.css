@@ -1,0 +1,5 @@
+.mimix-loading{position:fixed;inset:0;z-index:20;overflow:hidden;background-color:#0d1117;background-image:radial-gradient(1px 1px at 18% 24%,#a8c7d8 80%,transparent),radial-gradient(2px 2px at 72% 38%,#b5bccd 40%,transparent),radial-gradient(1px 1px at 45% 76%,#d6bed5 80%,transparent);background-size:270px 230px,410px 370px,330px 290px}
+.mimix-loading[hidden]{display:none}
+.mimix-loading canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#loading-back{position:absolute;bottom:32px;left:32px;opacity:0}
+#loading-back:focus-visible,#loading-back:hover{opacity:1}

@@ -1,18 +1,18 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mimix Cuy · El suelo es lava</title><link rel="stylesheet" href="styles.css">
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mimix Cuy · El suelo es lava</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="/mimix-loader.css">
 <script type="importmap">{"imports":{"three":"/vendor/three/three.module.js","three/":"/vendor/three/"}}</script></head>
 <body><main id="renderDiv" aria-label="El suelo es lava"></main>
 <aside id="power-status" hidden aria-label="Protección de Inca Kola"><strong>Inca Kola · ×2</strong><span>Protección <b id="power-seconds">12 s</b></span><progress id="power-meter" max="12" value="12" aria-label="Protección restante"></progress></aside>
 <header><span id="coin-score" aria-label="Monedas recogidas"><strong id="coin-value">0</strong><small>monedas</small></span><span id="score" aria-label="Puntuación"><strong id="score-value">0</strong><small>puntos</small></span></header>
 <button id="pause" class="game-control" aria-label="Pausar" title="Pausar" hidden><svg class="pause-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg><svg class="resume-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3 21 12 7 21z"/></svg></button>
 <a id="home" class="game-control" href="/" aria-label="Volver al inicio" title="Volver al inicio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m2 11 10-9 10 9-2 2-1-1v10h-5v-7h-4v7H5V12l-1 1z"/></svg></a>
-<section id="setup" class="camera-gate" aria-label="Preparar partida">
+<section id="setup" inert class="camera-gate" aria-label="Preparar partida">
 <h1 id="setup-title">Formas de juego</h1>
 <div class="mode-switch" role="group" aria-label="Modo de juego">
 <button id="camera" class="game-control" disabled aria-label="Usar cámara" title="Usar cámara" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h12a2 2 0 0 1 2 2v2l5-3v12l-5-3v2a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></button>
 <button id="keyboard" class="game-control" disabled aria-label="Usar teclado" title="Usar teclado" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 8h2v2H5zm4 0h2v2H9zm4 0h2v2h-2zm4 0h2v2h-2zM5 12h2v2H5zm4 0h2v2H9zm4 0h2v2h-2zm4 0h2v2h-2zM7 16h10v1H7z"/></svg></button>
 </div>
-<p id="status" role="status">Preparando al cuy…</p>
+<p id="status" role="status"></p>
 <div id="mode-guide" hidden>
 <div class="guide-tiles">
 <div class="guide-tile" id="move-guide"><div class="keyboard-demo"><div class="key-row"><kbd>A</kbd><kbd>D</kbd></div><div class="key-row"><kbd>←</kbd><kbd>→</kbd></div></div><div class="body-demo lateral" aria-hidden="true"><svg viewBox="0 0 240 160"><ellipse class="figure-shadow" cx="120" cy="146" rx="55" ry="7"/><path class="direction" d="m35 70-12 12 12 12m170-24 12 12-12 12"/><g class="person"><path class="legs" d="M108 96 97 137m35-41 12 41"/><path class="arms" d="m101 55-24 33m62-33 24 33"/><path class="shirt" d="M103 48Q120 42 137 48l8 50q-25 10-50 0z"/><circle class="skin" cx="120" cy="28" r="17"/><path class="hair" d="M103 25q-2-22 19-18 18 0 15 21l-9-9-25 6"/></g></svg></div><strong>Muévete a los lados</strong></div>
@@ -29,10 +29,8 @@
 <img class="game-over-art" src="assets/ui/cuy-frito-gameover-v3.png" alt="El cuy con su chullo, ojos en X y lengua afuera sobre un plato" width="1536" height="1024">
 <h1 id="result-title">¡Quedaste frito!</h1>
 <div class="result-stats" aria-label="Resultado de esta partida"><p><strong id="final-score">0</strong><span>puntos</span></p><p><strong id="final-coins">0</strong><span>monedas</span></p></div>
-<p id="local-best" class="result-best"></p>
-<div class="ranking-actions"><button id="save-ranking" class="game-control text-control">Guardar en ranking</button><button id="open-ranking" class="game-control text-control">Top 10</button></div>
+<div class="ranking-actions"><button id="save-ranking" class="game-control text-control">Guardar en ranking</button><button id="open-ranking" class="game-control text-control">Ranking</button></div>
 <p id="ranking-availability" class="ranking-note" role="status"></p>
-<nav id="quick-mode" aria-label="Cambiar modo de control" hidden><button id="quick-camera" aria-label="Usar cámara" title="Usar cámara" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h12a2 2 0 0 1 2 2v2l5-3v12l-5-3v2a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/></svg></button><button id="quick-keyboard" aria-label="Usar teclado" title="Usar teclado" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 8h2v2H5zm4 0h2v2H9zm4 0h2v2h-2zm4 0h2v2h-2zM5 12h2v2H5zm4 0h2v2H9zm4 0h2v2h-2zm4 0h2v2h-2zM7 16h10v1H7z"/></svg></button></nav>
 <div class="result-actions"><button id="restart" class="game-control" aria-label="Volver a jugar" title="Volver a jugar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 0 5h3a5 5 0 1 0 1-6l3 3H2V3z"/></svg></button><a class="game-control" href="/" aria-label="Volver al inicio" title="Volver al inicio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m2 11 10-9 10 9-2 2-1-1v10h-5v-7h-4v7H5V12l-1 1z"/></svg></a></div>
 </section>
 <dialog id="alias-dialog" class="ranking-dialog" aria-labelledby="alias-title">
@@ -46,10 +44,10 @@
 </form>
 </dialog>
 <dialog id="leaderboard-dialog" class="ranking-dialog leaderboard-dialog" aria-labelledby="leaderboard-title">
-<h2 id="leaderboard-title">Top 10</h2>
-<p class="ranking-note">Puntos y monedas de cada partida.</p>
+<div class="ranking-heading"><button id="leaderboard-back" class="game-control" aria-label="Volver al resultado" title="Volver"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m11 3-9 9 9 9v-6h11V9H11z"/></svg></button><h2 id="leaderboard-title">Ranking</h2></div>
 <p id="leaderboard-status" class="ranking-feedback" role="status" aria-live="polite"></p>
 <div id="leaderboard-table-wrap" class="leaderboard-scroll" hidden><table><caption class="sr-only">Mejores puntajes</caption><thead><tr><th scope="col">Puesto</th><th scope="col">Alias</th><th scope="col">Puntos</th><th scope="col">Monedas</th></tr></thead><tbody id="leaderboard-rows"></tbody></table></div>
-<div class="ranking-actions"><button id="leaderboard-back" class="game-control" aria-label="Volver al resultado" title="Volver"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m11 3-9 9 9 9v-6h11V9H11z"/></svg></button><button id="leaderboard-retry" class="game-control text-control" hidden>Reintentar</button></div>
+<div class="ranking-actions"><button id="leaderboard-retry" class="game-control text-control" hidden>Reintentar</button></div>
 </dialog>
+<div id="mimix-loading" class="mimix-loading"><span class="sr-only" role="status">Cargando</span><button id="loading-back" class="game-control" hidden aria-label="Cancelar y volver" title="Volver"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m11 3-9 9 9 9v-6h11V9H11z"/></svg></button></div>
 <script type="module" src="main.js"></script></body></html>
